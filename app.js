@@ -9,6 +9,10 @@ const taskInput = document.querySelector('#task');
 loadEventListeners();
 
 function loadEventListeners() {
+
+    // DOM Load event
+    document.addEventListener('DOMContentLoaded', getTasks);
+
     // Add task event
     form.addEventListener('submit', addTask);
     // Remove task event
@@ -19,6 +23,33 @@ function loadEventListeners() {
     filter.addEventListener('keyup', filterTasks);
 
 }
+
+// getTasks function
+function getTasks() {
+
+    let tasks;
+    if(localStorage.getItem('tasks') === null) {
+        tasks = []
+    } else {
+        tasks = JSON.parse(localStorage.getItem('tasks'));
+    }
+
+    tasks.forEach(function(task) {
+        const li = document.createElement('li');
+        li.className = 'collection-item';
+        // Create text node and append to li
+        li.appendChild(document.createTextNode(task));
+        // Create new link element
+        const link = document.createElement('a');
+        link.className = 'delete-item secondary-content';
+        link.innerHTML = '<i class="fa fa-remove"></i>';
+        li.appendChild(link);
+        // console.log(li);
+        // Append li to ul
+        taskList.appendChild(li);    
+    })
+}
+
 // addTask function
 function addTask(e) {
 
@@ -39,10 +70,28 @@ function addTask(e) {
     // console.log(li);
     // Append li to ul
     taskList.appendChild(li);
+
+    // Save to LS
+    storeTaskInLocalStorage(taskInput.value);
+
     // clear the input
     taskInput.value = '';
 
     e.preventDefault(); // prevents default form-submit behaviour (ie, do what is in action attribute of form)
+}
+
+// storeTaskInLocalStorage function
+function storeTaskInLocalStorage(task) {
+    let tasks;
+    if(localStorage.getItem('tasks') === null) {
+        tasks = []
+    } else {
+        tasks = JSON.parse(localStorage.getItem('tasks'));
+    }
+
+    tasks.push(task);
+
+    localStorage.setItem('tasks', JSON.stringify(tasks));
 }
 
 // removeTask function
@@ -52,10 +101,33 @@ function removeTask(e) {
 
         if(confirm('Are you sure?')) {
             e.target.parentElement.parentElement.remove();
-        }
 
+            // Remove from local storage
+            removeTaskFromLocalStorage(e.target.parentElement.parentElement);
+        }
         // console.log(e.target);
     }
+}
+
+// removeTaskFromLocalStorage function
+function removeTaskFromLocalStorage(taskItem) {
+    // console.log(taskItem);
+
+    let tasks;
+    if(localStorage.getItem('tasks') === null) {
+        tasks = []
+    } else {
+        tasks = JSON.parse(localStorage.getItem('tasks'));
+    }
+
+    tasks.forEach(function(task, index) {
+        if(taskItem.textContent === task) {
+            tasks.splice(index, 1)
+        }
+    });
+
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+
 }
 
 // clearTasks function
@@ -68,7 +140,16 @@ function clearTasks(e) {
     while(taskList.firstChild) {
         taskList.removeChild(taskList.firstChild);
     }
+
+    // Clear from local storage
+    clearTasksFromLocalStorage();
 }
+
+// clearTasksFromLocalStorage function
+function clearTasksFromLocalStorage() {
+    localStorage.clear();
+}
+
 
 // filterTasks function
 function filterTasks(e) {
